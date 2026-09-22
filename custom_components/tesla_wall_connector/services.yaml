@@ -1,0 +1,76 @@
+# Description du service pour l'interface : aucune configuration n'est requise
+# ici, tout passe par le service lui-meme.
+configure_charge_schedule:
+  name: Configurer le planning de charge
+  description: >-
+    Envoie un planning de charge interne a une ou plusieurs bornes Tesla Wall
+    Connector, en utilisant le jeton OAuth de l'integration tesla_fleet, qui le
+    rafraichit automatiquement.
+  fields:
+    energy_site_id:
+      name: Site d'energie
+      description: >-
+        Identifiant du site d'energie Tesla qui porte les bornes.
+      required: true
+      example: 1234567890123456
+      selector:
+        number:
+          min: 1
+          mode: box
+    wall_connector_dins:
+      name: Bornes
+      description: >-
+        Un ou plusieurs DIN de bornes, separes par des virgules. La commande est
+        envoyee a chacune.
+      required: true
+      example: "1XXXXXXXXXXXXX,2XXXXXXXXXXXXX"
+      selector:
+        text:
+    enable_schedule:
+      name: Planning actif
+      description: >-
+        Active ou desactive le planning interne de la borne. Une borne desactivee
+        reste autorisee a charger : c'est le planning qui ne s'applique plus.
+      required: true
+      selector:
+        boolean:
+    day_time_periods:
+      name: Periodes
+      description: >-
+        Liste des periodes au format Tesla, en JSON ou en YAML. Les heures sont
+        exprimees en secondes depuis minuit UTC. La borne refuse une liste vide,
+        meme lorsque le planning est desactive : fournir alors une fenetre
+        valide deja ecoulee.
+      required: true
+      example: >-
+        [{"day_bitmask":127,"time_periods":[{"start_seconds":79200,"end_seconds":82800}]}]
+      selector:
+        object:
+    base_url:
+      name: Endpoint Fleet
+      description: >-
+        Force l'endpoint regional. Par defaut il est deduit de la region du
+        jeton (claim ou_code), comme le fait l'integration officielle.
+      required: false
+      example: https://fleet-api.prd.eu.vn.cloud.tesla.com
+      selector:
+        text:
+          type: url
+    time_zone_id:
+      name: Fuseau du planning
+      description: >-
+        Fuseau declare a la borne. Laisser UTC : les transitions transmises
+        decrivent un decalage nul, seules des periodes en UTC sont correctes.
+      required: false
+      default: UTC
+      selector:
+        text:
+    dry_run:
+      name: Simulation
+      description: >-
+        Valide le jeton, la region et la cible sans rien envoyer a la borne.
+        Utile pour verifier l'authentification apres un changement.
+      required: false
+      default: false
+      selector:
+        boolean:

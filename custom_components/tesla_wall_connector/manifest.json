@@ -1,0 +1,12 @@
+{
+  "domain": "tesla_wall_connector",
+  "name": "Tesla Wall Connector",
+  "codeowners": ["@TheBarnHome"],
+  "dependencies": ["tesla_fleet"],
+  "documentation": "https://github.com/TheBarnHome/tesla-wc3-scheduller",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/TheBarnHome/tesla-wc3-scheduller/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
