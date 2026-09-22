@@ -184,6 +184,13 @@ La bibliotheque `tesla_fleet_api` installee avec Home Assistant possede deja une
 methode `_command()` sur le client de site d'energie, qui poste sur le meme
 endpoint. Elle n'est pas utilisee ici parce qu'elle n'emet pas de `target_id`.
 
+Un HTTP 200 ne veut pas dire que la borne a accepte : elle renvoie sa propre
+enumeration `WCChargeScheduleError`, ou `NONE` vaut **1** et `INVALID` vaut 0.
+Un `error: 1` est donc un succes, et le composant refuse tout autre code
+(`NO_INTERNET`, `NON_VOLATILE_DATA_READ_WRITE_FAIL`, `INTERNAL`) en citant le
+`request_id` de l'appel, pour qu'une commande rejetee ne passe pas inapercue
+dans une automatisation.
+
 ## Licence
 
 MIT.

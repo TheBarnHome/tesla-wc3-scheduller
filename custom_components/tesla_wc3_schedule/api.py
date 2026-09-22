@@ -8,6 +8,7 @@ par rapport a un ``rest_command`` alimente par un jeton fige dans les secrets.
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
@@ -22,6 +23,9 @@ from homeassistant.helpers.config_entry_oauth2_flow import (
 from jwt import PyJWTError, decode
 
 from .const import (
+    CHARGE_SCHEDULE_ERROR_NONE,
+    CHARGE_SCHEDULE_ERRORS,
+    CHARGE_SCHEDULE_RESPONSE,
     DEFAULT_REGION,
     DEFAULT_TIME_ZONE_ID,
     IDENTIFIER_TYPE_WALL_CONNECTOR_DIN,
@@ -118,6 +122,34 @@ def build_charge_schedule_payload(
     }
 
 
+def charge_schedule_error(data: Any) -> int | None:
+    """Retourne le code d'erreur que la borne a renvoye, ou None s'il est absent.
+
+    L'API Fleet enveloppe la reponse protobuf : le code utile vit dans
+    ``...Payload.Wc.Message.ConfigureChargeScheduleResponse.error``, et
+    ``WCChargeScheduleError`` place ``NONE`` a 1. Un champ absent ne dit rien,
+    seul un code lu est juge.
+    """
+
+    def walk(node: Any) -> int | None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key == CHARGE_SCHEDULE_RESPONSE and isinstance(value, dict):
+                    code = value.get("error")
+                    return code if isinstance(code, int) else None
+                found = walk(value)
+                if found is not None:
+                    return found
+        elif isinstance(node, list):
+            for item in node:
+                found = walk(item)
+                if found is not None:
+                    return found
+        return None
+
+    return walk(data)
+
+
 async def async_configure_charge_schedule(
     hass: HomeAssistant,
     *,
@@ -176,6 +208,20 @@ async def async_configure_charge_schedule(
     if code not in (None, 0):
         raise TeslaWallConnectorError(
             f"L'API Fleet a refuse la commande (code {code}) : {result}"
+        )
+
+    # Un HTTP 200 ne suffit pas : la borne juge la commande et renvoie son
+    # propre code, ou NONE vaut 1. Sans ce controle, un refus (borne hors
+    # ligne, memoire non inscriptible) passerait pour un succes.
+    error = charge_schedule_error(data)
+    if error is not None and error != CHARGE_SCHEDULE_ERROR_NONE:
+        label = CHARGE_SCHEDULE_ERRORS.get(error, f"code {error}")
+        request_id = ""
+        if isinstance(result, dict) and result.get("request_id"):
+            request_id = f" (request_id {result['request_id']})"
+        raise TeslaWallConnectorError(
+            f"La borne {wall_connector_din} a refuse le planning : {label}"
+            f"{request_id}. Reponse : {json.dumps(data)[:300]}"
         )
 
     return data

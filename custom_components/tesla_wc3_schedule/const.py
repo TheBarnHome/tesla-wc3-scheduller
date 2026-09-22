@@ -32,6 +32,22 @@ DEFAULT_TIME_ZONE_ID: Final = "UTC"
 # Aligne sur tesla_fleet_api.const.EnergyDeviceIdentifierType.WALL_CONNECTOR_DIN.
 IDENTIFIER_TYPE_WALL_CONNECTOR_DIN: Final = 4
 
+# Enumeration WCChargeScheduleError du protocole de la borne. Elle se lit a
+# l'envers : NONE vaut 1 et INVALID vaut 0, donc un ``error: 1`` dans la
+# reponse est un succes.
+CHARGE_SCHEDULE_ERROR_NONE: Final = 1
+
+CHARGE_SCHEDULE_ERRORS: Final = {
+    0: "INVALID",
+    1: "NONE",
+    2: "NO_INTERNET",
+    3: "NON_VOLATILE_DATA_READ_WRITE_FAIL",
+    4: "INTERNAL",
+}
+
+# Nom du message protobuf qui porte ce code dans la reponse de l'API Fleet.
+CHARGE_SCHEDULE_RESPONSE: Final = "ConfigureChargeScheduleResponse"
+
 # Endpoints Fleet regionaux, alignes sur tesla_fleet_api.const.REGIONS.
 REGION_BASE_URLS: Final = {
     "na": "https://fleet-api.prd.na.vn.cloud.tesla.com",
