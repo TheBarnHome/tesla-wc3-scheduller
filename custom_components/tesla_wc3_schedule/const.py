@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from typing import Final
 
-DOMAIN: Final = "tesla_wall_connector"
+# Ne pas reprendre le domaine ``tesla_wall_connector`` : Home Assistant core
+# expose deja une integration de ce nom, qui lit les bornes en local et les
+# decouvre en DHCP. Un composant custom du meme domaine la masque, et comme
+# celui-ci n'expose pas de config_flow, chaque decouverte echoue en erreur.
+DOMAIN: Final = "tesla_wc3_schedule"
 
 # L'integration officielle qui detient le jeton OAuth et le rafraichit.
 TESLA_FLEET_DOMAIN: Final = "tesla_fleet"

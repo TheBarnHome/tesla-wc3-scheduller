@@ -31,7 +31,7 @@ configuration `tesla_fleet`, qui le rafraichit, puis envoie la commande gRPC
 
 ## Ce que fait le composant
 
-Un seul service : `tesla_wall_connector.configure_charge_schedule`. Il envoie le
+Un seul service : `tesla_wc3_schedule.configure_charge_schedule`. Il envoie le
 planning a une ou plusieurs bornes, designees par leur DIN.
 
 ## Prerequis
@@ -51,7 +51,7 @@ planning a une ou plusieurs bornes, designees par leur DIN.
 
 ### A la main
 
-Copier `custom_components/tesla_wall_connector/` dans le dossier
+Copier `custom_components/tesla_wc3_schedule/` dans le dossier
 `custom_components/` de la configuration Home Assistant, puis redemarrer.
 
 ## Configuration
@@ -59,10 +59,15 @@ Copier `custom_components/tesla_wall_connector/` dans le dossier
 Ajouter la ligne suivante dans `configuration.yaml` :
 
 ```yaml
-tesla_wall_connector:
+tesla_wc3_schedule:
 ```
 
 Aucun autre reglage : le site d'energie et les bornes sont passes au service.
+
+Le domaine est volontairement distinct de `tesla_wall_connector` : Home
+Assistant core expose deja une integration de ce nom, qui lit les bornes en
+local et les decouvre en DHCP. Un composant custom du meme domaine la masque,
+et faute de `config_flow` cote custom, chaque decouverte echoue en erreur.
 
 ## Le service
 
@@ -82,7 +87,7 @@ fait avec `return_response: true`.
 ### Verifier l'authentification sans rien modifier
 
 ```yaml
-action: tesla_wall_connector.configure_charge_schedule
+action: tesla_wc3_schedule.configure_charge_schedule
 data:
   energy_site_id: 1234567890123456
   wall_connector_dins: "1XXXXXXXXXXXXX,2XXXXXXXXXXXXX"
@@ -125,7 +130,7 @@ Apres :
 
 ```yaml
 sequence:
-  - action: tesla_wall_connector.configure_charge_schedule
+  - action: tesla_wc3_schedule.configure_charge_schedule
     data:
       energy_site_id: 1234567890123456
       wall_connector_dins: "1XXXXXXXXXXXXX,2XXXXXXXXXXXXX"

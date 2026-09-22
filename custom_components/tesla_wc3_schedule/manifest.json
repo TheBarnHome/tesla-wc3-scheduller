@@ -1,6 +1,6 @@
 {
-  "domain": "tesla_wall_connector",
-  "name": "Tesla Wall Connector",
+  "domain": "tesla_wc3_schedule",
+  "name": "Tesla Wall Connector Schedule",
   "codeowners": ["@TheBarnHome"],
   "dependencies": ["tesla_fleet"],
   "documentation": "https://github.com/TheBarnHome/tesla-wc3-scheduller",
