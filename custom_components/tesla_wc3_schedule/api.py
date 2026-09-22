@@ -20,6 +20,7 @@ from homeassistant.helpers.config_entry_oauth2_flow import (
     OAuth2Session,
     async_get_config_entry_implementation,
 )
+from homeassistant.util import dt as dt_util
 from jwt import PyJWTError, decode
 
 from .const import (
@@ -27,7 +28,6 @@ from .const import (
     CHARGE_SCHEDULE_ERRORS,
     CHARGE_SCHEDULE_RESPONSE,
     DEFAULT_REGION,
-    DEFAULT_TIME_ZONE_ID,
     IDENTIFIER_TYPE_WALL_CONNECTOR_DIN,
     REGION_BASE_URLS,
     REQUEST_TIMEOUT,
@@ -84,12 +84,20 @@ def build_charge_schedule_payload(
     wall_connector_din: str,
     enable_schedule: bool,
     day_time_periods: list[dict[str, Any]],
-    time_zone_id: str = DEFAULT_TIME_ZONE_ID,
+    time_zone_id: str = "UTC",
+    utc_offset_seconds: int = 0,
 ) -> dict[str, Any]:
     """Construit le corps gRPC de ``configure_charge_schedule_request``.
 
     La forme du message est imposee par la passerelle : c'est celle que la
     commande ``rest_command`` d'origine envoyait deja.
+
+    Les periodes sont lues par la borne **dans le fuseau declare ici**. Verifie
+    sur la borne : une fenetre 20:00-21:00 annoncee en UTC autorise la charge a
+    22:00 heure de Paris. Declarer ``UTC`` avec un decalage nul signifie donc
+    que les heures envoyees sont UTC, et l'application Tesla les affiche telles
+    quelles. Pour raisonner en heure locale, il faut declarer la zone locale et
+    son decalage courant, puis envoyer des heures locales.
     """
     return {
         "command_type": "grpc_command",
@@ -107,7 +115,7 @@ def build_charge_schedule_payload(
                             "time_zone_info": {
                                 "transitions": [
                                     {
-                                        "local_time_utc_offset": 0,
+                                        "local_time_utc_offset": utc_offset_seconds,
                                         "timestamp": {"nanos": 0, "seconds": 0},
                                     }
                                 ]
@@ -159,14 +167,24 @@ async def async_configure_charge_schedule(
     wall_connector_din: str,
     enable_schedule: bool,
     day_time_periods: list[dict[str, Any]],
-    time_zone_id: str = DEFAULT_TIME_ZONE_ID,
+    time_zone_id: str | None = None,
 ) -> dict[str, Any]:
-    """Envoie le planning a une borne et retourne la reponse de l'API Fleet."""
+    """Envoie le planning a une borne et retourne la reponse de l'API Fleet.
+
+    Le fuseau declare par defaut est celui de Home Assistant, avec le decalage
+    courant : les periodes sont alors des heures locales, celles que l'on lit
+    dans l'application Tesla, et le passage a l'heure d'hiver est couvert par
+    le decalage recalcule a chaque appel.
+    """
+    local_now = dt_util.now()
+    offset = local_now.utcoffset()
+
     payload = build_charge_schedule_payload(
         wall_connector_din=wall_connector_din,
         enable_schedule=enable_schedule,
         day_time_periods=day_time_periods,
-        time_zone_id=time_zone_id,
+        time_zone_id=time_zone_id or hass.config.time_zone,
+        utc_offset_seconds=int(offset.total_seconds()) if offset else 0,
     )
 
     session = async_get_clientsession(hass)

@@ -78,7 +78,7 @@ et faute de `config_flow` cote custom, chaque decouverte echoue en erreur.
 | `enable_schedule` | oui | Active ou desactive le planning interne. |
 | `day_time_periods` | oui | Periodes au format Tesla, en JSON ou en YAML. |
 | `base_url` | non | Force l'endpoint regional ; deduit du jeton sinon. |
-| `time_zone_id` | non | Laisser `UTC`. |
+| `time_zone_id` | non | Fuseau des periodes ; celui de Home Assistant par defaut. |
 | `dry_run` | non | Valide le jeton et la cible sans rien envoyer. |
 
 Le service renvoie la reponse de l'API Fleet, borne par borne, si l'appel est
@@ -147,8 +147,11 @@ vide, meme lorsque le planning est desactive.
 
 ## Limites connues
 
-- **UTC uniquement.** Le message declare un decalage nul, seules des periodes
-  exprimees en UTC sont donc correctes.
+- **Le planning appartient a la borne.** Il est lu dans le fuseau declare a
+  l'envoi, et l'application Tesla affiche ces memes heures : le service declare
+  donc par defaut celui de Home Assistant, avec son decalage courant, pour que
+  les periodes soient des heures locales. Declarer `UTC` est possible, mais les
+  heures envoyees sont alors comprises comme UTC et affichees telles quelles.
 - **Pas d'interface de configuration.** Le service prend le site et les bornes
   en parametres, ce qui garde la configuration dans Git plutot que dans
   `.storage`. Un config flow pourra venir plus tard.
@@ -190,6 +193,16 @@ Un `error: 1` est donc un succes, et le composant refuse tout autre code
 (`NO_INTERNET`, `NON_VOLATILE_DATA_READ_WRITE_FAIL`, `INTERNAL`) en citant le
 `request_id` de l'appel, pour qu'une commande rejetee ne passe pas inapercue
 dans une automatisation.
+
+Le fuseau est la partie la moins evidente du protocole. La commande
+`get_config`, qui n'est pas utilisée ici, permet de relire ce que la borne a
+enregistre : elle stocke les periodes telles quelles, sans fuseau. Mesure faite
+sur une borne, voiture branchee et charge en cours : une fenetre
+`20:00-21:00` annoncee en `UTC` a **autorise la charge a 22:06 heure de
+Paris**, et une fenetre entierement ecoulee l'a **coupee en 25 secondes**. La
+borne applique donc les periodes dans le fuseau declare, et l'application Tesla
+affiche ces memes heures. D'ou le choix de declarer la zone de Home Assistant
+plutot que `UTC`.
 
 ## Licence
 

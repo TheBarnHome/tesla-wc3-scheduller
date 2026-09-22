@@ -24,9 +24,11 @@ CONF_WALL_CONNECTOR_DINS: Final = "wall_connector_dins"
 
 SERVICE_CONFIGURE_CHARGE_SCHEDULE: Final = "configure_charge_schedule"
 
-# Le planning des bornes est exprime en UTC : c'est ce que calculent les
-# automatisations, et cela evite toute dependance aux transitions d'heure.
-DEFAULT_TIME_ZONE_ID: Final = "UTC"
+# La borne lit les periodes dans le fuseau declare au moment de l'envoi, et
+# l'application Tesla affiche ces memes heures. Le service declare donc par
+# defaut la zone de Home Assistant avec son decalage courant, ce qui rend les
+# periodes locales ; un fuseau explicite reste possible via ``time_zone_id``.
+# Il n'y a plus de constante de fuseau par defaut.
 
 # Valeur utilisee par Tesla pour designer une borne par son DIN.
 # Aligne sur tesla_fleet_api.const.EnergyDeviceIdentifierType.WALL_CONNECTOR_DIN.

@@ -33,7 +33,6 @@ from .const import (
     CONF_ENERGY_SITE_ID,
     CONF_TIME_ZONE_ID,
     CONF_WALL_CONNECTOR_DINS,
-    DEFAULT_TIME_ZONE_ID,
     DOMAIN,
     SERVICE_CONFIGURE_CHARGE_SCHEDULE,
 )
@@ -49,7 +48,7 @@ SERVICE_SCHEMA = vol.Schema(
         vol.Required(CONF_ENABLE_SCHEDULE): cv.boolean,
         vol.Required(CONF_DAY_TIME_PERIODS): vol.Any(str, list),
         vol.Optional(CONF_BASE_URL): cv.url,
-        vol.Optional(CONF_TIME_ZONE_ID, default=DEFAULT_TIME_ZONE_ID): cv.string,
+        vol.Optional(CONF_TIME_ZONE_ID): cv.string,
         vol.Optional(CONF_DRY_RUN, default=False): cv.boolean,
     }
 )
@@ -122,7 +121,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                     wall_connector_din=din,
                     enable_schedule=enable_schedule,
                     day_time_periods=day_time_periods,
-                    time_zone_id=call.data[CONF_TIME_ZONE_ID],
+                    time_zone_id=call.data.get(CONF_TIME_ZONE_ID),
                 )
             except TeslaWallConnectorError as err:
                 raise HomeAssistantError(str(err)) from err

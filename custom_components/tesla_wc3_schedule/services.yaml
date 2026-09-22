@@ -59,10 +59,11 @@ configure_charge_schedule:
     time_zone_id:
       name: Fuseau du planning
       description: >-
-        Fuseau declare a la borne. Laisser UTC : les transitions transmises
-        decrivent un decalage nul, seules des periodes en UTC sont correctes.
+        Fuseau dans lequel la borne lit les periodes, et dans lequel
+        l'application Tesla les affiche. Par defaut celui de Home Assistant,
+        avec son decalage courant : les heures envoyees sont alors des heures
+        locales.
       required: false
-      default: UTC
       selector:
         text:
     dry_run:
